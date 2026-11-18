@@ -1,0 +1,35 @@
+---
+# verify.yml — live listener offers publickey only (never sshd -T alone).
+
+- name: Assert live sshd offers publickey only
+  ansible.builtin.command:
+    argv:
+      - ssh
+      - -v
+      - -o
+      - BatchMode=yes
+      - -o
+      - PreferredAuthentications=none
+      - -o
+      - StrictHostKeyChecking=accept-new
+      - -o
+      - "ConnectTimeout={{ sshd_probe_timeout }}"
+      - "{{ sshd_probe_host }}"
+      - --
+      - "true"
+  register: _live_sshd_probe
+  become: false
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Fail when live sshd offers password auth
+  ansible.builtin.assert:
+    that:
+      - "_live_sshd_probe.stderr | lower is search('authentications that can continue: publickey')"
+      - "_live_sshd_probe.stderr | lower is not search('password')"
+      - "_live_sshd_probe.stderr | lower is not search('keyboard-interactive')"
+    fail_msg: >-
+      Live sshd offers auth methods beyond publickey (config parsing is
+      not enough — the running daemon can serve a stale config). The
+      listener actually advertised: {{ _live_sshd_probe.stderr | default('') }}

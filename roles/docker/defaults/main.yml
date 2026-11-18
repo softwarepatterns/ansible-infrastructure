@@ -1,0 +1,25 @@
+---
+# docker role — every consumer-overridable knob.
+docker_apt_key_path: /etc/apt/keyrings/docker.asc
+docker_apt_key_url: https://download.docker.com/linux/debian/gpg
+# Pin of the upstream signing key bytes; bump deliberately with Docker's key.
+docker_apt_key_sha256: "1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570"
+docker_apt_uris:
+  - https://download.docker.com/linux/debian
+docker_apt_suites:
+  - "{{ ansible_facts.distribution_release }}"
+docker_apt_components:
+  - stable
+docker_apt_architectures: >-
+  {{ ['amd64'] if ansible_facts.architecture == 'x86_64'
+     else (['arm64'] if ansible_facts.architecture == 'aarch64'
+     else [ansible_facts.architecture]) }}
+docker_apt_source_name: docker
+docker_legacy_list_path: /etc/apt/sources.list.d/docker.list
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+docker_service_name: docker

@@ -1,0 +1,26 @@
+---
+# converge.yml — install Fly 6PN WireGuard client config and start the unit.
+# Consumer generates the peer config (e.g. fly wireguard create) and passes
+# fly6pn_config_src. No play-level handler required: restart on config change.
+
+- name: Assert fly6pn_config_src is set
+  ansible.builtin.assert:
+    that:
+      - fly6pn_config_src | length > 0
+    fail_msg: "fly6pn_config_src must be the controller path to the peer config file."
+
+- name: Install WireGuard config on host
+  ansible.builtin.copy:
+    src: "{{ fly6pn_config_src }}"
+    dest: "{{ fly6pn_config_dest }}"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart fly6pn wireguard
+  no_log: true
+
+- name: Ensure WireGuard service is enabled and started
+  ansible.builtin.service:
+    name: "{{ fly6pn_service_name }}"
+    enabled: true
+    state: started

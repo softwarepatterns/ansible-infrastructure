@@ -1,0 +1,36 @@
+---
+# converge.yml — hardening drop-in + reload when daemon predates the file.
+# Does not own authorized_keys or account creation.
+# Live-daemon failure mode: .agents/references/sshd-stale-config.md
+
+- name: Install sshd hardening drop-in (00- sorts before 50-cloud-init.conf; first match wins)
+  ansible.builtin.copy:
+    src: "{{ sshd_hardening_src }}"
+    dest: "{{ sshd_dropin_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure sshd reloaded when the hardening drop-in postdates its last config load
+  ansible.builtin.shell: |
+    set -u
+    dropin=$(stat -c %Y {{ sshd_dropin_path }} 2>/dev/null || echo 0)
+    ts=$(journalctl -u {{ sshd_service_name }} -o short-iso --no-pager 2>/dev/null | grep 'Server listening' | tail -1 | awk '{print $1}')
+    listener=0
+    if [ -n "$ts" ]; then
+      listener=$(date -d "$ts" +%s 2>/dev/null || echo 0)
+    fi
+    if [ "$dropin" -gt "$listener" ]; then
+      if systemctl reload {{ sshd_service_name }}; then
+        echo reloaded
+      else
+        echo "sshd reload failed" >&2
+        exit 1
+      fi
+    else
+      echo unchanged
+    fi
+  args:
+    executable: /bin/bash
+  register: _sshd_hardening_reload
+  changed_when: "'reloaded' in _sshd_hardening_reload.stdout"

@@ -1,0 +1,7 @@
+---
+# molecule/default — structural placeholder; live proof is the consuming box.
+dependency: { name: galaxy }
+driver: { name: default }
+platforms: [{ name: instance }]
+provisioner: { name: ansible }
+verifier: { name: ansible }

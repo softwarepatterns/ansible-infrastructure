@@ -1,0 +1,83 @@
+---
+# converge.yml — install tailscaled; join when tailscale_authkey is non-empty.
+
+- name: Ensure Tailscale apt keyring directory exists
+  ansible.builtin.file:
+    path: "{{ tailscale_apt_key_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install Tailscale apt signing key
+  ansible.builtin.get_url:
+    url: "{{ tailscale_apt_key_url }}"
+    dest: "{{ tailscale_apt_key_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install Tailscale apt source list
+  ansible.builtin.get_url:
+    url: "{{ tailscale_apt_list_url }}"
+    dest: "/etc/apt/sources.list.d/{{ tailscale_apt_source_name }}.list"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure Tailscale packages are present
+  ansible.builtin.apt:
+    name: "{{ tailscale_packages }}"
+    state: present
+    update_cache: true
+
+- name: Ensure tailscaled is enabled and started
+  ansible.builtin.service:
+    name: tailscaled
+    enabled: true
+    state: started
+
+- name: Set Tailscale key presence fact
+  ansible.builtin.set_fact:
+    _tailscale_key_present: "{{ (tailscale_authkey | default('') | length) > 0 }}"
+  no_log: true
+
+- name: Note when Tailscale auth key is not present
+  ansible.builtin.debug:
+    msg: >-
+      tailscale_authkey empty — tailscaled installed, not joined.
+      Pass a per-box auth key from the consumer's secret store.
+  when: not (_tailscale_key_present | bool)
+
+- name: Read Tailscale backend state
+  ansible.builtin.command:
+    argv: [tailscale, status, --json]
+  register: _tailscale_status_raw
+  changed_when: false
+  failed_when: false
+  when: _tailscale_key_present | bool
+
+- name: Parse Tailscale backend state
+  ansible.builtin.set_fact:
+    _tailscale_backend: "{{ (_tailscale_status_raw.stdout | default('{}') | from_json).BackendState | default('unknown') }}"
+  when: _tailscale_key_present | bool
+
+- name: Bring Tailscale up with auth key
+  ansible.builtin.command:
+    argv: "{{ _tailscale_up_argv }}"
+  vars:
+    _tailscale_up_argv: >-
+      {{
+        ['tailscale', 'up',
+         '--auth-key=' + tailscale_authkey,
+         '--hostname=' + tailscale_hostname,
+         '--accept-routes=' + ('true' if tailscale_accept_routes else 'false'),
+         '--ssh=' + ('true' if tailscale_ssh else 'false')]
+        + (['--advertise-tags=' + tailscale_advertise_tags] if (tailscale_advertise_tags | length) > 0 else [])
+      }}
+  register: _tailscale_up
+  when:
+    - _tailscale_key_present | bool
+    - _tailscale_backend | default('') != 'Running'
+  changed_when: _tailscale_up.rc == 0
+  no_log: true

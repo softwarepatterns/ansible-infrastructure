@@ -1,0 +1,13 @@
+---
+- name: Verify WireGuard interface exists
+  ansible.builtin.command:
+    argv: [wg, show, "{{ fly6pn_interface }}"]
+  register: verify_wg
+  changed_when: false
+  check_mode: false
+
+- name: Assert WireGuard has a live handshake
+  ansible.builtin.assert:
+    that:
+      - 'verify_wg.stdout is search("latest handshake: [1-9]")'
+    fail_msg: "{{ fly6pn_interface }} has no handshake — the tunnel is not up."

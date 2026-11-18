@@ -1,0 +1,41 @@
+---
+- name: Set Tailscale key presence fact for verify
+  ansible.builtin.set_fact:
+    _tailscale_key_present: "{{ (tailscale_authkey | default('') | length) > 0 }}"
+
+- name: Verify tailscaled is active
+  ansible.builtin.command:
+    argv: [systemctl, is-active, tailscaled]
+  register: _verify_tailscaled
+  changed_when: false
+  check_mode: false
+  failed_when: _verify_tailscaled.stdout != 'active'
+
+- name: Assert tailscaled is active
+  ansible.builtin.assert:
+    that:
+      - _verify_tailscaled.stdout == 'active'
+    fail_msg: "tailscaled is not active."
+
+- name: Read Tailscale status for verify
+  ansible.builtin.command:
+    argv: [tailscale, status, --json]
+  register: _verify_tailscale_status
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  when: _tailscale_key_present | bool
+
+- name: Assert Tailscale backend is Running when auth key present
+  ansible.builtin.assert:
+    that:
+      - (_verify_tailscale_status.stdout | from_json).BackendState | default('') == 'Running'
+    fail_msg: >-
+      tailscale_authkey is set but BackendState is not Running
+      (got {{ (_verify_tailscale_status.stdout | default('{}') | from_json).BackendState | default('unknown') }}).
+  when: _tailscale_key_present | bool
+
+- name: Note Tailscale verify skipped join check (no auth key)
+  ansible.builtin.debug:
+    msg: "tailscale_authkey not set — skipped BackendState Running assert."
+  when: not (_tailscale_key_present | bool)

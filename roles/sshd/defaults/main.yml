@@ -1,0 +1,7 @@
+---
+sshd_dropin_path: /etc/ssh/sshd_config.d/00-ansible-hardening.conf
+sshd_service_name: ssh
+sshd_probe_host: localhost
+sshd_probe_timeout: 5
+# Path of the hardening file inside the role files/
+sshd_hardening_src: hardening.conf

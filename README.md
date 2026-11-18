@@ -1,47 +1,49 @@
 # softwarepatterns/ansible-infrastructure
 
-Ansible collection `softwarepatterns.infrastructure`.
+Ansible collection `softwarepatterns.infrastructure` — shared **capability
+roles** for estate boxes (build-box, mail-box, …).
 
-**Status: empty.** No roles ship. Version `0.0.0` is a clean skeleton only.
-Do not consume this collection for production until a deliberate release
-with real roles is published and pinned.
+## Roles (0.1.0)
 
-## Purpose
+| Role | Resource |
+|---|---|
+| `docker` | Docker engine (apt source, packages, service) |
+| `sshd` | Host sshd keys-only drop-in + live publickey probe |
+| `tailscale` | tailscaled install + optional join via auth key |
+| `fly6pn` | Fly 6PN WireGuard client install + handshake verify |
 
-A versioned home for **resource-oriented** infrastructure roles (one noun
-per coherent capability — e.g. a daemon, an engine, an account policy).
-Estate boxes should include roles here instead of copying converge logic
-between hosts.
+Product-specific roles (Forgejo, JuiceFS volume, Databasus, runners) stay
+in the consuming repos.
 
-## What this repo is not
-
-- Not a place to rewrite live servers from scratch
-- Not lifecycle phases (`bootstrap` / `deploy`) dressed as roles
-- Not a dump of unproven “improvements” while moving code
-
-## Structure
-
-```
-roles/                   # empty until a role is extracted with zero behavior change
-plugins/                 # empty by design until a custom plugin is justified
-meta/runtime.yml         # minimum ansible-core
-.agents/references/      # load-bearing operational facts (not role code)
-```
-
-## Consuming (when roles exist)
+## Consume
 
 ```yaml
-# requirements.yml — pin a real release tag, never 0.0.0
+# requirements.yml
 collections:
   - name: softwarepatterns.infrastructure
     type: git
     source: https://forgejo.softwarepatterns.com/softwarepatterns/ansible-infrastructure.git
-    version: <release>
+    version: 0.1.0
 ```
 
-## Testing
+```bash
+ansible-galaxy collection install -r requirements.yml
+```
 
-`./scripts/gate.sh` — static gate on commit and push (`.githooks/`).
+```yaml
+- ansible.builtin.include_role:
+    name: softwarepatterns.infrastructure.sshd
+    tasks_from: converge
+```
+
+Pin a release. Bump deliberately. Do not use `0.0.0`.
+
+## Law
+
+- One role = one noun/resource
+- No greenfield rewrite of production behavior
+- Public, no secrets or unexposed hostnames in shipped roles
+- Gate: `./scripts/gate.sh`
 
 ## License
 

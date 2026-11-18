@@ -1,0 +1,5 @@
+---
+- name: Restart fly6pn wireguard
+  ansible.builtin.service:
+    name: "{{ fly6pn_service_name }}"
+    state: restarted

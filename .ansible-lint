@@ -1,0 +1,10 @@
+---
+# Lint config for the collection. Keep roles clean; skip noise that fights
+# standard import_tasks / internal register names.
+skip_list:
+  - name[missing] # import_tasks lines
+  - var-naming[no-role-prefix] # _internal registers
+  - yaml[line-length]
+  - risky-shell-pipe # sshd reload-ensure is intentional
+  - command-instead-of-shell
+  - experimental

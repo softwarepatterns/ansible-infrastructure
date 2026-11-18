@@ -1,0 +1,6 @@
+---
+# Path on the controller to the peer config file (consumer-generated).
+fly6pn_config_src: ""
+fly6pn_interface: fly6pn
+fly6pn_config_dest: "/etc/wireguard/{{ fly6pn_interface }}.conf"
+fly6pn_service_name: "wg-quick@{{ fly6pn_interface }}"
