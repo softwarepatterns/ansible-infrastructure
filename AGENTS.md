@@ -4,33 +4,28 @@ Short-form for agents working on `softwarepatterns/ansible-infrastructure`.
 
 ## Inviolable
 
-1. **No greenfield rewrite of production.** Roles extract existing, proven
-   converge behavior. Byte-identical or proven no-op on a quiet box. Never
-   “improve while moving,” never redesign a live traffic-serving host in
-   place.
-2. **One role = one resource (a noun).** Not a lifecycle phase, not a
-   playbook section name, not a grab bag.
-3. **One change at a time.** A subagent task moves or adds a single
-   capability. No drive-by cleanups.
-4. **Public, generic, self-contained.** No secrets, private keys, or
-   unexposed hostnames/IPs in shipped `roles/` / `plugins/`.
-5. **The running daemon is the resource** where that applies. Config files
-   alone cannot prove a live listener (see
+1. **No greenfield rewrite of production.** Roles extract proven converge
+   behavior. Never redesign a live traffic-serving host in place.
+2. **One role = one resource (a noun).** Not a lifecycle phase.
+3. **One change at a time.** Narrow, verifiable scopes.
+4. **Public, generic, self-contained.** No secrets or unexposed hostnames/IPs
+   in shipped `roles/` / `plugins/`.
+5. **The running daemon is the resource** where that applies (see
    `.agents/references/sshd-stale-config.md`).
-6. **A role without proof does not ship.** When roles exist: README,
-   defaults, tasks, meta, and a Molecule scenario (converge → idempotence →
-   live verify). Gate enforces completeness per role directory.
+6. **A role ships with** README, defaults, tasks, meta, and a Molecule
+   scenario directory (gate enforces presence). Live proof is the consuming
+   box until Molecule scenarios are fully wired.
 7. **Enforcement is `scripts/gate.sh`.** Commit hook ≡ push hook.
+8. **Version pins are bare semver** (`0.1.1`). Bump `galaxy.yml` + tag
+   `N` and `vN` on release. Consumers pin the bare version.
 
-## Empty collection
+## Shipped roles (desired state)
 
-`0.0.0` ships no roles. Adding the first role is a deliberate product
-decision: extract from a known-good consumer with zero behavior change,
-then release above `0.0.0`.
+`docker`, `sshd`, `tailscale`, `fly6pn` — see root `README.md`.
 
 ## Do not
 
-- Restore prior rewrite-era role trees from backup branches into `main`
-  without human review of every task
-- Pin or document `0.0.0` as production-ready
-- Invent frameworks, phase roles, or custom modules without justification
+- Restore rewrite-era trees from backup branches without human review
+- Invent frameworks, phase roles, or unjustified custom modules
+- Break file compatibility with Docker CE vs Debian `docker.io` without
+  removing conflict packages first (`docker` role)
