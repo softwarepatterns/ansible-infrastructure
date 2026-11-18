@@ -1,0 +1,21 @@
+# gate.yml — run the collection's static gate on every push and PR.
+# The gate is the repo's single level-1 checkpoint; it runs on the runner
+# (not a host box) and exits non-zero on the first failure. No other steps:
+# the gate is the whole job.
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  gate:
+    runs-on: bookworm
+    steps:
+      - name: Checkout
+        uses: https://forgejo.softwarepatterns.com/actions/checkout@v7
+
+      - name: Gate
+        run: ./scripts/gate.sh

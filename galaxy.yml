@@ -1,0 +1,28 @@
+# galaxy.yml — collection identity only. Version bumps when roles ship.
+namespace: softwarepatterns
+name: infrastructure
+version: 0.0.0
+readme: README.md
+authors:
+  - Software Patterns
+description: >-
+  Empty collection skeleton for resource-oriented infrastructure roles.
+  No roles ship yet. Consumers must not pin this version for production.
+license:
+  - Apache-2.0
+tags:
+  - infrastructure
+repository: https://forgejo.softwarepatterns.com/softwarepatterns/ansible-infrastructure
+issues: https://forgejo.softwarepatterns.com/softwarepatterns/ansible-infrastructure/issues
+build_ignore:
+  - .venv-gate
+  - .molecule
+  - .ansible
+  - .git
+  - .githooks
+  - .gitignore
+  - .forgejo
+  - AGENTS.md
+  - scripts
+  - docs
+  - requirements.txt

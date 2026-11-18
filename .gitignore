@@ -1,0 +1,7 @@
+.venv-gate/
+.ansible/
+.molecule/
+__pycache__/
+*.pyc
+*.tar.gz
+.DS_Store
