@@ -22,4 +22,12 @@ docker_packages:
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
+# Removed before CE install when present (file path conflicts).
+docker_debian_conflict_packages:
+  - docker.io
+  - docker-cli
+  - docker-compose
+  - docker-buildx
+  - containerd
+  - runc
 docker_service_name: docker

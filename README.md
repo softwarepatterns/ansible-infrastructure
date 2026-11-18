@@ -3,7 +3,7 @@
 Ansible collection `softwarepatterns.infrastructure` — shared **capability
 roles** for estate boxes (build-box, mail-box, …).
 
-## Roles (0.1.0)
+## Roles (0.1.1)
 
 | Role | Resource |
 |---|---|
@@ -23,7 +23,7 @@ collections:
   - name: softwarepatterns.infrastructure
     type: git
     source: https://forgejo.softwarepatterns.com/softwarepatterns/ansible-infrastructure.git
-    version: 0.1.0
+    version: 0.1.1
 ```
 
 ```bash

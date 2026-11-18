@@ -35,6 +35,15 @@
     path: "{{ docker_legacy_list_path }}"
     state: absent
 
+# Debian docker.io / docker-compose / docker-buildx ship the same plugin
+# paths as Docker CE plugins; remove them before installing CE or dpkg fails
+# on file overwrite (mail-box cutover lesson).
+- name: Remove Debian docker.io stack packages that conflict with Docker CE
+  ansible.builtin.apt:
+    name: "{{ docker_debian_conflict_packages }}"
+    state: absent
+    autoremove: false
+
 - name: Ensure Docker CE and plugins are present
   ansible.builtin.apt:
     name: "{{ docker_packages }}"

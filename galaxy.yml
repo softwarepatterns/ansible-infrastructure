@@ -1,7 +1,7 @@
 # galaxy.yml — collection identity. Version bumps when roles ship.
 namespace: softwarepatterns
 name: infrastructure
-version: 0.1.0
+version: 0.1.1
 readme: README.md
 authors:
   - Software Patterns
